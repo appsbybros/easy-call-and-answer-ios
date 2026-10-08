@@ -44,13 +44,24 @@ final class EasyCallUITests: XCTestCase {
         app.tabBars.buttons["Keypad"].tap()
         XCUIDevice.shared.orientation = .landscapeLeft
         capture("landscape-keypad-accessibility")
+        app.buttons["1"].tap();app.buttons["2"].tap()
+        let call=app.buttons["Call"]
+        for _ in 0..<8 where !call.isHittable {app.swipeUp()}
+        XCTAssertTrue(call.isHittable,"The Call control must remain reachable at maximum text size in landscape")
+        XCTAssertTrue(call.isEnabled)
+        capture("landscape-call-accessibility")
         XCUIDevice.shared.orientation = .portrait
     }
     func testManualContactPersistsAndCanBeRemoved() throws {
         let app=launch(demo:false)
         app.buttons["Add a person"].tap()
         let name=app.textFields["Name"];XCTAssertTrue(name.waitForExistence(timeout:5));name.tap();name.typeText("QA Contact")
+        // On a compact phone the next field sits behind the keyboard. Use the
+        // visible dismissal control, exactly as a person would, before tapping it.
+        app.buttons["Done"].tap()
         let phone=app.textFields["Phone number"];phone.tap();phone.typeText("+12025550199")
+        XCTAssertEqual(phone.value as? String,"+12025550199")
+        app.buttons["Done"].tap()
         app.swipeUp();app.buttons["Save person"].tap()
         XCTAssertTrue(app.buttons["Call QA Contact"].waitForExistence(timeout:5))
         app.terminate();app.launch()
