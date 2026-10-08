@@ -25,7 +25,9 @@ final class EasyCallUITests: XCTestCase {
         app.buttons["Done"].tap()
         app.tabBars.buttons["Keypad"].tap()
         for digit in ["0","2","5","5","5","0","1","2","3"] {app.buttons[digit].tap()}
-        XCTAssertEqual(app.textFields["dial-number"].value as? String,"025550123");capture("en-03-keypad")
+        XCTAssertEqual(app.textFields["dial-number"].value as? String,"025550123")
+        XCTAssertTrue(app.buttons["Call"].isHittable,"Digits and Call must fit a portrait phone at the standard text size")
+        capture("en-03-keypad")
         app.tabBars.buttons["Help"].tap();capture("en-04-help")
         app.tabBars.buttons["People"].tap();app.buttons["Settings"].tap();capture("en-05-settings")
     }

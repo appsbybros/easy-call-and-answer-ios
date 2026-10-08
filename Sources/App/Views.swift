@@ -232,23 +232,29 @@ struct KeypadView: View {
     @Environment(\.dynamicTypeSize) private var type
     @State private var number=""
     var body: some View {
-        Page {
-            if !type.isAccessibilitySize { SectionTitle(title:"A number to call",subtitle:"Take your time. Check the number, then tap Call.") }
+        GeometryReader { geometry in
+          let compact = geometry.size.height < 650 || geometry.size.width < 390
+          ScrollView {
+           VStack(alignment:.leading,spacing:12) {
+            if geometry.size.height >= 900 && !type.isAccessibilitySize { SectionTitle(title:"A number to call",subtitle:"Take your time. Check the number, then tap Call.") }
             HStack {
                 TextField(L("Phone number"),text:$number).keyboardType(.phonePad).font(.largeTitle.monospacedDigit()).accessibilityIdentifier("dial-number")
-                Button { if !number.isEmpty {number.removeLast()} } label:{Image(systemName:"delete.left").font(.title2).frame(width:60,height:64)}.accessibilityLabel(L("Delete last digit"))
-            }.padding(18).background(.white,in:RoundedRectangle(cornerRadius:22)).environment(\.layoutDirection,.leftToRight)
-            LazyVGrid(columns:Array(repeating:GridItem(.flexible(),spacing:14),count:3),spacing:14) {
+                Button { if !number.isEmpty {number.removeLast()} } label:{Image(systemName:"delete.left").font(.title2).frame(width:60,height:compact ? 48 : 64)}.accessibilityLabel(L("Delete last digit"))
+            }.padding(compact ? 12 : 18).background(.white,in:RoundedRectangle(cornerRadius:22)).environment(\.layoutDirection,.leftToRight)
+            LazyVGrid(columns:Array(repeating:GridItem(.flexible(),spacing:compact ? 8 : 14),count:3),spacing:compact ? 8 : 14) {
                 ForEach(["1","2","3","4","5","6","7","8","9","+","0","⌫"],id:\.self) { digit in
                     Button {
                         if digit == "⌫" { if !number.isEmpty { number.removeLast() } }
                         else if number.count < 24 { number += digit }
-                    } label:{ Text(digit).font(.system(.largeTitle,design:.rounded,weight:.semibold)).frame(maxWidth:.infinity).frame(minHeight:76).background(.white,in:RoundedRectangle(cornerRadius:22)) }
+                    } label:{ Text(digit).font(.system(.largeTitle,design:.rounded,weight:.semibold)).frame(maxWidth:.infinity).frame(minHeight:compact ? 56 : 76).background(.white,in:RoundedRectangle(cornerRadius:22)) }
                         .foregroundStyle(Palette.ink).accessibilityLabel(digit == "⌫" ? L("Delete last digit") : digit)
                 }
             }.environment(\.layoutDirection,.leftToRight)
             Button { calling.dial(number,demonstration:library.demonstration) } label:{Label(L("Call"),systemImage:"phone.fill")}.buttonStyle(ActionStyle()).disabled(PhoneNumber.normalized(number) == nil)
             Text(L("For emergency calls, use your iPhone’s Emergency screen or Phone app.")).font(.body)
+           }.frame(maxWidth:900).padding(compact ? 12 : 24).frame(maxWidth:.infinity)
+          }.scrollDismissesKeyboard(.interactively)
+            .background(Palette.cream).foregroundStyle(Palette.ink)
         }.navigationTitle(L("Keypad")).navigationBarTitleDisplayMode(.inline)
             .toolbar { KeyboardDismissToolbar() }
     }
