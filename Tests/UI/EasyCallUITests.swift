@@ -27,12 +27,15 @@ final class EasyCallUITests: XCTestCase {
         XCTAssertTrue(tab.waitForExistence(timeout:5));tab.tap()
     }
     private func reveal(_ element:XCUIElement,in app:XCUIApplication) {
-        // Use frame-relative vertical drags. The newer runtime's generic
-        // application.swipeUp() recorded a horizontal path after rotation.
+        // Drag within the target's scroll view, including a centered iPad sheet.
+        // Whole-screen gestures can land outside that sheet; generic swipeUp()
+        // also recorded a horizontal path after rotation on the newer runtime.
+        let scroll=app.scrollViews.containing(.button,identifier:element.label).firstMatch
+        let surface=scroll.exists ? scroll : app
         for _ in 0..<20 where !element.isHittable {
-            let top=app.coordinate(withNormalizedOffset:CGVector(dx:0.2,dy:0.4))
-            let bottom=app.coordinate(withNormalizedOffset:CGVector(dx:0.2,dy:0.7))
-            if element.exists && element.frame.midY < app.frame.height*0.35 {
+            let top=surface.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.25))
+            let bottom=surface.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.75))
+            if element.exists && element.frame.midY < surface.frame.minY+surface.frame.height*0.2 {
                 top.press(forDuration:0.05,thenDragTo:bottom)
             } else {
                 bottom.press(forDuration:0.05,thenDragTo:top)
