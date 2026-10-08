@@ -38,11 +38,16 @@ jobs:
       - name: iPhone UI tests and screenshots
         run: |
           set -o pipefail
-          xcodebuild test -project EasyCall.xcodeproj -scheme EasyCall -destination "platform=iOS Simulator,id=$PHONE" -derivedDataPath build/DerivedData -resultBundlePath build/Phone.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee build/phone.log
+          xcrun simctl boot "$PHONE"
+          xcrun simctl bootstatus "$PHONE" -b
+          xcodebuild test -project EasyCall.xcodeproj -scheme EasyCall -destination "platform=iOS Simulator,id=$PHONE" -parallel-testing-enabled NO -test-timeouts-enabled YES -default-test-execution-time-allowance 120 -maximum-test-execution-time-allowance 180 -derivedDataPath build/DerivedData -resultBundlePath build/Phone.xcresult CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- 2>&1 | tee build/phone.log
       - name: iPad UI tests and screenshots
         run: |
           set -o pipefail
-          xcodebuild test -project EasyCall.xcodeproj -scheme EasyCall -destination "platform=iOS Simulator,id=$TABLET" -derivedDataPath build/DerivedData -resultBundlePath build/Tablet.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee build/tablet.log
+          xcrun simctl shutdown "$PHONE"
+          xcrun simctl boot "$TABLET"
+          xcrun simctl bootstatus "$TABLET" -b
+          xcodebuild test -project EasyCall.xcodeproj -scheme EasyCall -destination "platform=iOS Simulator,id=$TABLET" -parallel-testing-enabled NO -test-timeouts-enabled YES -default-test-execution-time-allowance 120 -maximum-test-execution-time-allowance 180 -derivedDataPath build/DerivedData -resultBundlePath build/Tablet.xcresult CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- 2>&1 | tee build/tablet.log
       - name: Compile Release for physical iOS devices
         run: |
           set -o pipefail

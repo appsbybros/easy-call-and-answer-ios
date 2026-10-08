@@ -7,3 +7,6 @@ build/
 *.p12
 *.mobileprovision
 Resources/Info.plist
+__pycache__/
+*.pyc
+EasyCall.xctestplan

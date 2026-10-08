@@ -4,7 +4,8 @@ import StoreKitTest
 
 @MainActor final class PurchaseTests: XCTestCase {
     func testLifetimePurchaseRestoreAndRefund() async throws {
-        let session=try SKTestSession(configurationFileNamed:"EasyCall")
+        let configuration=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"EasyCall",withExtension:"storekit"))
+        let session=try SKTestSession(contentsOf:configuration)
         session.resetToDefaultState();session.disableDialogs=true;session.clearTransactions()
         defer {session.clearTransactions()}
         let store=Purchases()

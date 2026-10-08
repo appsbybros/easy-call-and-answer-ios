@@ -1,5 +1,6 @@
 name: EasyCall
 options:
+  postGenCommand: python3 Scripts/configure-tests.py
   bundleIdPrefix: com.appsbybros
   deploymentTarget:
     iOS: '17.0'
@@ -47,7 +48,11 @@ targets:
   EasyCallTests:
     type: bundle.unit-test
     platform: iOS
-    sources: [Tests/Hosted]
+    sources:
+      - path: Tests/Hosted
+        excludes: [EasyCall.storekit]
+      - path: Tests/Hosted/EasyCall.storekit
+        buildPhase: resources
     dependencies:
       - target: EasyCall
     settings:

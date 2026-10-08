@@ -53,7 +53,7 @@ final class EasyCallUITests: XCTestCase {
         app.buttons["QA Contact, Details and reminders"].tap()
         app.swipeUp();app.buttons["Remove"].tap()
         let removeButtons=app.buttons.matching(identifier:"Remove").allElementsBoundByIndex
-        try XCTUnwrap(removeButtons.last).tap()
+        try XCTUnwrap(removeButtons.first(where: { $0.isHittable })).tap()
         XCTAssertTrue(app.buttons["Start with someone you love"].exists || app.staticTexts["Start with someone you love"].waitForExistence(timeout:5))
     }
 }
