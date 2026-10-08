@@ -1,0 +1,49 @@
+{
+  "sourceCommit": "736e877",
+  "run": "37732679519",
+  "finalSource": false,
+  "assets": [
+    {
+      "name": "en-05-settings",
+      "device": "iPhone 17 Pro Max",
+      "source": "BB7A5708-F25A-4A18-95D8-58462EA18A61.png",
+      "transformation": "none"
+    },
+    {
+      "name": "en-04-help",
+      "device": "iPhone 17 Pro Max",
+      "source": "BB141689-6E47-47E2-9071-3E6D35133CB4.png",
+      "transformation": "none"
+    },
+    {
+      "name": "en-03-keypad",
+      "device": "iPhone 17 Pro Max",
+      "source": "1755EC1A-89E3-4A4E-B09A-7D08FB75EEC2.png",
+      "transformation": "none"
+    },
+    {
+      "name": "en-01-people",
+      "device": "iPhone 17 Pro Max",
+      "source": "26434CA5-6A1E-4F05-ADAA-055664521B86.png",
+      "transformation": "none"
+    },
+    {
+      "name": "he-03-help",
+      "device": "iPhone 17 Pro Max",
+      "source": "ADBC18AC-71B3-4F05-942D-EB7237854CFA.png",
+      "transformation": "none"
+    },
+    {
+      "name": "he-02-keypad",
+      "device": "iPhone 17 Pro Max",
+      "source": "63EEE479-075C-4D4B-8BEB-6C81B3E11885.png",
+      "transformation": "none"
+    },
+    {
+      "name": "he-01-people",
+      "device": "iPhone 17 Pro Max",
+      "source": "7D50F2B7-F105-4F63-AFC0-3773AFAB9911.png",
+      "transformation": "none"
+    }
+  ]
+}

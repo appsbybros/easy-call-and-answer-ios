@@ -9,6 +9,7 @@
 "Allow notifications in iPhone Settings to receive call reminders." = "אפשרו עדכונים בהגדרות ה־iPhone כדי לקבל תזכורות להתקשר.";
 "Answer automatically only if you choose" = "מענה אוטומטי — רק לבחירתכם";
 "Answering and ending" = "מענה וסיום שיחה";
+"Apple confirms a free 14-day Trial. It never renews or charges automatically. After 14 days, adding extra people and new reminders requires the lifetime upgrade." = "Apple מאשרת התנסות חינם ל־14 ימים. היא אינה מתחדשת ואין חיוב אוטומטי. לאחר 14 ימים נדרש שדרוג קבוע כדי להוסיף אנשים מעבר למכסה החינמית ותזכורות חדשות.";
 "Apple offers Auto-Answer Calls under Call Audio Routing. It can answer unexpected callers too. Leave it off unless you understand the trade-off; Easy Call never enables it." = "בהגדרות ניתוב שמע של שיחות אפשר להפעיל מענה אוטומטי. הוא עלול לענות גם למתקשרים לא צפויים. הפעילו אותו רק אם זה מתאים לכם. Easy Call לא מפעילה אותו בעצמה.";
 "Apple processes purchases and calls use your carrier or FaceTime. Easy Call does not record calls or use your microphone. If you email support, we receive the information you send. Avoid including private contact information." = "Apple מטפלת ברכישות. השיחות נעשות דרך חברת הטלפון או FaceTime. האפליקציה אינה מקליטה שיחות ואינה משתמשת במיקרופון. אם תפנו לתמיכה בדוא״ל, נקבל את המידע שתשלחו. הימנעו מצירוף פרטי קשר פרטיים.";
 "Apple standard license terms" = "תנאי הרישיון של Apple";
@@ -24,6 +25,7 @@
 "Calm home screen" = "מסך בית פשוט";
 "Calm mode hides notes on the home screen. Names and calling stay easy to find." = "מצב פשוט מסתיר את ההערות במסך הבית. השמות וכפתורי ההתקשרות נשארים ברורים.";
 "Cancel" = "ביטול";
+"Cancel an existing reminder before adding another. Your reminder list is full." = "רשימת התזכורות מלאה. בטלו תזכורת קיימת לפני הוספת תזכורת חדשה.";
 "Cancel reminder" = "ביטול התזכורת";
 "Check the number, including its country code when needed. Calling opens Apple’s Phone app." = "בדקו את המספר, כולל קידומת מדינה כשצריך. ההתקשרות תפתח את אפליקציית הטלפון של Apple.";
 "Check this phone number. Use digits and an optional country code." = "בדקו את המספר. השתמשו בספרות ובקידומת מדינה לפי הצורך.";
@@ -101,6 +103,7 @@
 "Their entry in Apple Contacts will not change. Their call reminders here will be cancelled." = "הרשומה באנשי הקשר של Apple לא תשתנה. התזכורות להתקשר אליו כאן יבוטלו.";
 "This is a practice contact. No call was placed." = "זהו איש קשר לתרגול. לא בוצעה שיחה.";
 "Time for a call" = "זמן להתקשר";
+"Trial ends" = "סיום ההתנסות";
 "Try extras free for 14 days" = "התנסות חינם ל־14 יום";
 "Try store again" = "ניסיון נוסף לחנות";
 "Up to 100 favorite people" = "עד 100 אנשי קשר מועדפים";
@@ -113,5 +116,5 @@
 "Your people." = "האנשים שלכם.";
 "Your purchase is awaiting approval." = "הרכישה ממתינה לאישור.";
 "Your saved contacts could not be opened. They have not been replaced. Close and reopen the app, or contact support." = "לא ניתן לפתוח את אנשי הקשר השמורים. הם לא הוחלפו. סגרו ופתחו את האפליקציה, או פנו לתמיכה.";
+"Your trial has ended. Calling and saved people remain free." = "ההתנסות הסתיימה. התקשרות לאנשים שנשמרו נשארת בחינם.";
 "Your upgrade" = "השדרוג שלכם";
-"Cancel an existing reminder before adding another. Your reminder list is full." = "רשימת התזכורות מלאה. בטלו תזכורת קיימת לפני הוספת תזכורת חדשה.";

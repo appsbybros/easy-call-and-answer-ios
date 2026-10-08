@@ -22,6 +22,7 @@ struct Page<Content:View>: View {
     @ViewBuilder var content: Content
     var body: some View {
         ScrollView { VStack(alignment:.leading,spacing:24) { content }.frame(maxWidth:900).padding(24).frame(maxWidth:.infinity) }
+            .scrollDismissesKeyboard(.interactively)
             .background(Palette.cream).foregroundStyle(Palette.ink)
     }
 }
@@ -56,16 +57,16 @@ struct HomeView: View {
     @State private var adding = false
     @State private var settings = false
     @State private var upgrade = false
-    private var hasExtra:Bool { purchases.unlocked || library.value.trialActive(now:Date()) }
+    private var hasExtra:Bool { purchases.unlocked || library.value.trialActive(start:purchases.trialStart,now:Date()) }
     var body: some View {
         TabView(selection:$tab) {
             NavigationStack {
                 Page {
-                    HStack(alignment:.top,spacing:16) {
+                    if !type.isAccessibilitySize || library.value.people.isEmpty { HStack(alignment:.top,spacing:16) {
                         SectionTitle(title:"Your people.",subtitle:"A familiar face. A little closer.")
                         Spacer(minLength:0)
                         Image(systemName:"phone.fill").font(.system(size:30)).foregroundStyle(Palette.teal).frame(width:68,height:68).background(Palette.gold,in:RoundedRectangle(cornerRadius:24)).accessibilityHidden(true)
-                    }
+                    } }
                     if library.value.people.isEmpty {
                         VStack(alignment:.leading,spacing:20) {
                             Image(systemName:"person.2.fill").font(.system(size:52)).foregroundStyle(Palette.teal).accessibilityHidden(true)
@@ -80,7 +81,7 @@ struct HomeView: View {
                                         VStack(alignment:.leading,spacing:14) {
                                             Avatar(person:person,size:library.value.largeCards ? 88 : 68)
                                             Text(person.name).font(.title2.bold()).multilineTextAlignment(.leading).foregroundStyle(Palette.ink)
-                                            if !library.value.calmMode && !person.note.isEmpty { Text(person.note).font(.body).foregroundStyle(Palette.ink).lineLimit(2).multilineTextAlignment(.leading) }
+                                            if !library.value.calmMode && !type.isAccessibilitySize && !person.note.isEmpty { Text(person.note).font(.body).foregroundStyle(Palette.ink).lineLimit(2).multilineTextAlignment(.leading) }
                                         }.frame(maxWidth:.infinity,alignment:.leading).contentShape(Rectangle())
                                     }.buttonStyle(.plain).accessibilityLabel(person.name + ", " + L("Details and reminders"))
                                     Button { calling.dial(person.phone,demonstration:library.demonstration) } label: { Label(L("Call"),systemImage:"phone.fill") }
@@ -124,6 +125,16 @@ struct HomeView: View {
         UserDefaults.standard.removeObject(forKey:"pendingPerson")
     }
 }
+struct KeyboardDismissToolbar: ToolbarContent {
+    var body: some ToolbarContent {
+        ToolbarItemGroup(placement:.keyboard) {
+            Spacer()
+            Button(L("Done")) {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),to:nil,from:nil,for:nil)
+            }.font(.title3.weight(.semibold)).frame(minHeight:48)
+        }
+    }
+}
 
 struct PersonEditor: View {
     @EnvironmentObject private var library:Library
@@ -152,9 +163,12 @@ struct PersonEditor: View {
                         if library.upsert(person) { dismiss() } else { problem=library.error }
                     }.buttonStyle(ActionStyle())
                 }.listRowBackground(Color.clear)
-            }.scrollContentBackground(.hidden).background(Palette.cream)
+            }.scrollContentBackground(.hidden).background(Palette.cream).scrollDismissesKeyboard(.interactively)
                 .navigationTitle(L("Add or edit a person")).navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement:.cancellationAction) { Button(L("Cancel")) { dismiss() }.frame(minHeight:48) } }
+                .toolbar {
+                    ToolbarItem(placement:.cancellationAction) { Button(L("Cancel")) { dismiss() }.frame(minHeight:48) }
+                    KeyboardDismissToolbar()
+                }
                 .sheet(isPresented:$picker) { ContactPicker { selected in var updated=selected; updated.id=person.id; updated.color=person.color; updated.note=person.note; person=updated } }
                 .alert(L("Please check"),isPresented:Binding(get:{problem != nil},set:{if !$0 { problem=nil }})) { Button(L("OK")) { problem=nil } } message:{ Text(problem ?? "") }
         }
@@ -182,7 +196,7 @@ struct PersonDetail: View {
                 if !current.note.isEmpty { Text(current.note).font(.title2).padding(20).frame(maxWidth:.infinity,alignment:.leading).background(.white,in:RoundedRectangle(cornerRadius:22)) }
                 Button { calling.dial(current.phone,demonstration:library.demonstration) } label: { Label(L("Call"),systemImage:"phone.fill") }.buttonStyle(ActionStyle())
                 Button { calling.dial(current.phone,demonstration:library.demonstration,faceTime:true) } label: { Label(L("FaceTime Audio"),systemImage:"waveform") }.buttonStyle(ActionStyle(primary:false))
-                Button { if purchases.unlocked || library.value.trialActive(now:Date()) { reminder=true } else { upgrade=true } } label: { Label(L("Remind me to call"),systemImage:"bell.badge") }.buttonStyle(ActionStyle(primary:false))
+                Button { if purchases.unlocked || library.value.trialActive(start:purchases.trialStart,now:Date()) { reminder=true } else { upgrade=true } } label: { Label(L("Remind me to call"),systemImage:"bell.badge") }.buttonStyle(ActionStyle(primary:false))
                 ForEach(library.value.reminders.filter{$0.personID == person.id && $0.date > Date()}.sorted{$0.date < $1.date}) { item in
                     HStack {
                         Label(item.date.formatted(date:.abbreviated,time:.shortened),systemImage:"bell")
@@ -215,10 +229,11 @@ struct PersonDetail: View {
 struct KeypadView: View {
     @EnvironmentObject private var library:Library
     @EnvironmentObject private var calling:Calling
+    @Environment(\.dynamicTypeSize) private var type
     @State private var number=""
     var body: some View {
         Page {
-            SectionTitle(title:"A number to call",subtitle:"Take your time. Check the number, then tap Call.")
+            if !type.isAccessibilitySize { SectionTitle(title:"A number to call",subtitle:"Take your time. Check the number, then tap Call.") }
             HStack {
                 TextField(L("Phone number"),text:$number).keyboardType(.phonePad).font(.largeTitle.monospacedDigit()).accessibilityIdentifier("dial-number")
                 Button { if !number.isEmpty {number.removeLast()} } label:{Image(systemName:"delete.left").font(.title2).frame(width:60,height:64)}.accessibilityLabel(L("Delete last digit"))
@@ -235,6 +250,7 @@ struct KeypadView: View {
             Button { calling.dial(number,demonstration:library.demonstration) } label:{Label(L("Call"),systemImage:"phone.fill")}.buttonStyle(ActionStyle()).disabled(PhoneNumber.normalized(number) == nil)
             Text(L("For emergency calls, use your iPhone’s Emergency screen or Phone app.")).font(.body)
         }.navigationTitle(L("Keypad")).navigationBarTitleDisplayMode(.inline)
+            .toolbar { KeyboardDismissToolbar() }
     }
 }
 
@@ -255,15 +271,20 @@ struct ReminderView:View {
                         .buttonStyle(ActionStyle()).disabled(saving)
                 }.listRowBackground(Color.clear)
             }.scrollContentBackground(.hidden).background(Palette.cream).navigationTitle(L("Call reminder")).navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement:.cancellationAction) {Button(L("Cancel")){dismiss()}.frame(minHeight:48)} }
+                .toolbar { ToolbarItem(placement:.cancellationAction) {Button(L("Cancel")){dismiss()}.frame(minHeight:48).disabled(saving)} }
                 .alert(L("Please check"),isPresented:Binding(get:{error != nil},set:{if !$0 {error=nil}})) { Button(L("OK")){error=nil} } message:{Text(error ?? "")}
-        }
+        }.interactiveDismissDisabled(saving)
     }
     @MainActor private func saveReminder() async {
+        guard !saving else { return }
         saving=true; defer { saving=false }
         guard !library.demonstration else { dismiss();return }
         do {
             let item=try await Reminders.schedule(person:person,date:date)
+            guard library.value.people.contains(where:{$0.id == person.id}) else {
+                UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers:[item.id.uuidString])
+                dismiss(); return
+            }
             let before=library.value
             library.value.reminders.removeAll { $0.date < Date() }
             library.value.reminders.append(item)
@@ -298,7 +319,7 @@ struct SettingsView:View {
                     Text(L("Calm mode hides notes on the home screen. Names and calling stay easy to find.")).font(.body)
                 }.font(.title3)
                 Section(L("Your upgrade")) {
-                    Text(L(purchases.unlocked ? "Lifetime access is active" : library.value.trialActive(now:Date()) ? "Your 14-day preview is active" : "Calls and four favorite people are free"))
+                    Text(L(purchases.unlocked ? "Lifetime access is active" : library.value.trialActive(start:purchases.trialStart,now:Date()) ? "Your 14-day preview is active" : "Calls and four favorite people are free"))
                     Button(L("See lifetime upgrade")){upgrade=true}.frame(minHeight:56)
                     Button(L("Restore purchases")){Task{await purchases.restore()}}.frame(minHeight:56).disabled(purchases.busy)
                 }
@@ -335,14 +356,19 @@ struct UpgradeView:View {
                     Text(L("Lifetime access is active")).font(.title2.bold())
                 } else {
                     if purchases.busy { ProgressView().frame(maxWidth:.infinity).accessibilityLabel(L("Purchases")) }
-                    if library.value.trialStart == nil {
+                    if purchases.trialStart == nil, purchases.trialProduct != nil {
                         Button(L("Try extras free for 14 days")) {
-                            let before=library.value
-                            library.value.trialStart=Date();library.value.latestSeen=Date()
-                            if library.save(){dismiss()} else {library.value=before}
-                        }.buttonStyle(ActionStyle())
-                        Text(L("No payment details. No automatic charge. The preview starts only when you tap this button.")).font(.body)
-                    } else if library.value.trialActive(now:Date()) { Text(L("Your 14-day preview is active")).font(.title3.bold()) }
+                            Task { await purchases.buy(trial:true); library.recordVisit() }
+                        }.buttonStyle(ActionStyle()).disabled(purchases.busy)
+                        Text(L("Apple confirms a free 14-day Trial. It never renews or charges automatically. After 14 days, adding extra people and new reminders requires the lifetime upgrade.")).font(.body)
+                    } else if library.value.trialActive(start:purchases.trialStart,now:Date()) {
+                        Text(L("Your 14-day preview is active")).font(.title3.bold())
+                        if let start=purchases.trialStart {
+                            Text(L("Trial ends") + ": " + start.addingTimeInterval(14*86400).formatted(date:.abbreviated,time:.omitted))
+                        }
+                    } else if purchases.trialStart != nil {
+                        Text(L("Your trial has ended. Calling and saved people remain free.")).font(.title3)
+                    }
                     if let product=purchases.product {
                         Button {Task{await purchases.buy()}} label:{Text(L("Lifetime upgrade") + " · " + product.displayPrice)}.buttonStyle(ActionStyle()).disabled(purchases.busy)
                     } else {

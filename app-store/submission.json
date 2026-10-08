@@ -22,7 +22,7 @@
     "price_status": "Proposal only; no price or product created in App Store Connect",
     "family_sharing": "Recommended if acceptable; enabling it is irreversible."
   },
-  "review_notes": "No login. Four favorites and keypad are free. Add contacts manually or through the system picker. Phone calls hand off to tel: and answering/ending is handled by iOS. No default-dialer entitlement, call blocking, call recording or automatic dialing. Extras have an explicitly started 14-day local preview (not a subscription or auto-renewing trial). Purchase ID: com.appsbybros.easycall.lifetime. Existing saved people remain callable after preview expiry. On iPad, supported FaceTime Audio is available; carrier calls require a capable phone. Notification permission is requested only when saving a reminder.",
+  "review_notes": "No login. Four favorites and keypad are free. Add contacts manually or through the system picker. Phone calls hand off to tel: and answering/ending is handled by iOS. No default-dialer entitlement, call blocking, call recording or automatic dialing. Extras have an explicitly started 14-day trial using the verified original purchase date of the free non-consumable com.appsbybros.easycall.trial14, named 14-day Trial (not a subscription; no renewal or automatic charge). Purchase ID: com.appsbybros.easycall.lifetime. Existing saved people remain callable after preview expiry. On iPad, supported FaceTime Audio is available; carrier calls require a capable phone. Notification permission is requested only when saving a reminder.",
   "release_not_done": [
     "Apple app record and purchase setup",
     "Repository signing secrets",
@@ -30,5 +30,13 @@
     "Public hosting of privacy/support URLs",
     "Owner business/contact and pricing review",
     "Final App Review questionnaire and submission"
-  ]
+  ],
+  "trialPurchase": {
+    "productID": "com.appsbybros.easycall.trial14",
+    "type": "Non-Consumable",
+    "displayName": "14-day Trial",
+    "price": "Free (0)",
+    "familySharing": false,
+    "configuredInAppStoreConnect": false
+  }
 }

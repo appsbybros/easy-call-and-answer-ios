@@ -19,11 +19,13 @@ final class CoreTests:XCTestCase {
         XCTAssertTrue(gate.admit(now:now.addingTimeInterval(-3600)))
     }
     func testTrialExpiresAndClockRollbackDoesNotRenewIt() {
-        var s = Snapshot();let now = Date();s.trialStart = now
-        XCTAssertTrue(s.trialActive(now:now.addingTimeInterval(13*86400)))
-        XCTAssertFalse(s.trialActive(now:now.addingTimeInterval(14*86400)))
+        var s = Snapshot();let now = Date()
+        XCTAssertFalse(s.trialActive(start:nil,now:now))
+        XCTAssertFalse(s.trialActive(start:now,now:now.addingTimeInterval(-1)))
+        XCTAssertTrue(s.trialActive(start:now,now:now.addingTimeInterval(13*86400)))
+        XCTAssertFalse(s.trialActive(start:now,now:now.addingTimeInterval(14*86400)))
         s.latestSeen = now.addingTimeInterval(15*86400)
-        XCTAssertFalse(s.trialActive(now:now.addingTimeInterval(2*86400)))
+        XCTAssertFalse(s.trialActive(start:now,now:now.addingTimeInterval(2*86400)))
     }
     func testDeleteOnlyRemovesRelatedReminders() {
         var s = Snapshot();let one = Person(name:"One",phone:"1234"),two = Person(name:"Two",phone:"5678")

@@ -28,6 +28,7 @@ func L(_ key: String) -> String { NSLocalizedString(key, comment: "") }
         }
     }
     @discardableResult func save() -> Bool {
+        error = nil
         guard !demonstration else { return true }
         guard !readFailed else { error = L("Saved data needs attention before you can make changes."); return false }
         do {
@@ -46,11 +47,14 @@ func L(_ key: String) -> String { NSLocalizedString(key, comment: "") }
     func remove(_ person: Person) {
         let before = value; let ids = value.reminders.filter{$0.personID == person.id}.map{ $0.id.uuidString }
         value.remove(person.id)
-        if save() { UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers:ids) }
+        if save() {
+            let center=UNUserNotificationCenter.current()
+            center.removePendingNotificationRequests(withIdentifiers:ids)
+            center.removeDeliveredNotifications(withIdentifiers:ids)
+        }
         else { value = before }
     }
     func recordVisit() {
-        guard value.trialStart != nil else { return }
         value.latestSeen = max(Date(),value.latestSeen ?? .distantPast); save()
     }
 }
@@ -77,15 +81,19 @@ func L(_ key: String) -> String { NSLocalizedString(key, comment: "") }
 
 @MainActor final class Purchases: ObservableObject {
     static let productID = "com.appsbybros.easycall.lifetime"
+    static let trialProductID = "com.appsbybros.easycall.trial14"
     @Published var unlocked = false
     @Published var product: Product?
+    @Published var trialProduct: Product?
+    @Published var trialStart: Date?
     @Published var busy = false
     @Published var message: String?
     private var listener: Task<Void,Never>?
     init() {
         listener = Task { [weak self] in
             for await result in Transaction.updates {
-                if case .verified(let transaction) = result {
+                if case .verified(let transaction) = result,
+                   [Self.productID,Self.trialProductID].contains(transaction.productID) {
                     await transaction.finish(); await self?.refresh()
                 }
             }
@@ -95,18 +103,30 @@ func L(_ key: String) -> String { NSLocalizedString(key, comment: "") }
     deinit { listener?.cancel() }
     func refresh() async {
         var found = false
+        var trial: Date?
         for await result in Transaction.currentEntitlements {
             if case .verified(let transaction) = result,
-               transaction.productID == Self.productID,transaction.revocationDate == nil { found = true }
+               transaction.revocationDate == nil {
+                if transaction.productID == Self.productID { found = true }
+                if transaction.productID == Self.trialProductID {
+                    trial = min(trial ?? transaction.originalPurchaseDate,transaction.originalPurchaseDate)
+                }
+            }
         }
         unlocked = found
-        do { product = try await Product.products(for:[Self.productID]).first }
-        catch { product = nil }
-    }
-    func buy() async {
-        guard let product,!busy else { return }; busy = true; defer { busy = false }
+        trialStart = trial
         do {
-            switch try await product.purchase() {
+            let products=try await Product.products(for:[Self.productID,Self.trialProductID])
+            product=products.first{$0.id == Self.productID && $0.type == .nonConsumable}
+            trialProduct=products.first{$0.id == Self.trialProductID && $0.type == .nonConsumable && $0.price == 0}
+        } catch { product = nil; trialProduct = nil }
+    }
+    func buy(trial: Bool = false) async {
+        guard let chosen=trial ? trialProduct : product,!busy else { return }
+        guard !trial || (chosen.price == 0 && trialStart == nil) else { return }
+        busy = true; defer { busy = false }
+        do {
+            switch try await chosen.purchase() {
             case .success(let result):
                 guard case .verified(let transaction) = result else { message = L("The purchase could not be verified. Please restore purchases."); return }
                 await transaction.finish(); await refresh()
@@ -118,7 +138,7 @@ func L(_ key: String) -> String { NSLocalizedString(key, comment: "") }
     }
     func restore() async {
         guard !busy else { return }; busy = true; defer { busy = false }
-        do { try await AppStore.sync(); await refresh(); message = unlocked ? L("Purchase restored.") : L("No upgrade was found for this Apple Account.") }
+        do { try await AppStore.sync(); await refresh(); message = unlocked || trialStart != nil ? L("Purchase restored.") : L("No upgrade was found for this Apple Account.") }
         catch { message = L("Restore could not finish. Please try again.") }
     }
 }
@@ -166,12 +186,14 @@ struct ContactPicker: UIViewControllerRepresentable {
         let center = UNUserNotificationCenter.current()
         guard try await center.requestAuthorization(options:[.alert,.sound]) else { throw Failure.permissionDenied }
         guard await center.pendingNotificationRequests().count < 60 else { throw Failure.tooMany }
+        // A person may leave the permission sheet open past the chosen time.
+        guard date > Date().addingTimeInterval(30) else { throw Failure.invalidDate }
         let reminder = CallReminder(personID:person.id,date:date)
         let content = UNMutableNotificationContent()
         content.title = L("Time for a call")
         content.body = person.name; content.sound = .default
         content.userInfo = ["personID":person.id.uuidString]
-        let trigger = UNCalendarNotificationTrigger(dateMatching:Calendar.current.dateComponents([.year,.month,.day,.hour,.minute],from:date),repeats:false)
+        let trigger = UNCalendarNotificationTrigger(dateMatching:Calendar.current.dateComponents([.year,.month,.day,.hour,.minute,.second],from:date),repeats:false)
         try await center.add(UNNotificationRequest(identifier:reminder.id.uuidString,content:content,trigger:trigger))
         return reminder
     }

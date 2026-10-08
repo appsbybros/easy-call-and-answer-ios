@@ -9,6 +9,7 @@
 "Allow notifications in iPhone Settings to receive call reminders." = "Allow notifications in iPhone Settings to receive call reminders.";
 "Answer automatically only if you choose" = "Answer automatically only if you choose";
 "Answering and ending" = "Answering and ending";
+"Apple confirms a free 14-day Trial. It never renews or charges automatically. After 14 days, adding extra people and new reminders requires the lifetime upgrade." = "Apple confirms a free 14-day Trial. It never renews or charges automatically. After 14 days, adding extra people and new reminders requires the lifetime upgrade.";
 "Apple offers Auto-Answer Calls under Call Audio Routing. It can answer unexpected callers too. Leave it off unless you understand the trade-off; Easy Call never enables it." = "Apple offers Auto-Answer Calls under Call Audio Routing. It can answer unexpected callers too. Leave it off unless you understand the trade-off; Easy Call never enables it.";
 "Apple processes purchases and calls use your carrier or FaceTime. Easy Call does not record calls or use your microphone. If you email support, we receive the information you send. Avoid including private contact information." = "Apple processes purchases and calls use your carrier or FaceTime. Easy Call does not record calls or use your microphone. If you email support, we receive the information you send. Avoid including private contact information.";
 "Apple standard license terms" = "Apple standard license terms";
@@ -24,6 +25,7 @@
 "Calm home screen" = "Calm home screen";
 "Calm mode hides notes on the home screen. Names and calling stay easy to find." = "Calm mode hides notes on the home screen. Names and calling stay easy to find.";
 "Cancel" = "Cancel";
+"Cancel an existing reminder before adding another. Your reminder list is full." = "Cancel an existing reminder before adding another. Your reminder list is full.";
 "Cancel reminder" = "Cancel reminder";
 "Check the number, including its country code when needed. Calling opens Apple’s Phone app." = "Check the number, including its country code when needed. Calling opens Apple’s Phone app.";
 "Check this phone number. Use digits and an optional country code." = "Check this phone number. Use digits and an optional country code.";
@@ -101,6 +103,7 @@
 "Their entry in Apple Contacts will not change. Their call reminders here will be cancelled." = "Their entry in Apple Contacts will not change. Their call reminders here will be cancelled.";
 "This is a practice contact. No call was placed." = "This is a practice contact. No call was placed.";
 "Time for a call" = "Time for a call";
+"Trial ends" = "Trial ends";
 "Try extras free for 14 days" = "Try extras free for 14 days";
 "Try store again" = "Try store again";
 "Up to 100 favorite people" = "Up to 100 favorite people";
@@ -113,5 +116,5 @@
 "Your people." = "Your people.";
 "Your purchase is awaiting approval." = "Your purchase is awaiting approval.";
 "Your saved contacts could not be opened. They have not been replaced. Close and reopen the app, or contact support." = "Your saved contacts could not be opened. They have not been replaced. Close and reopen the app, or contact support.";
+"Your trial has ended. Calling and saved people remain free." = "Your trial has ended. Calling and saved people remain free.";
 "Your upgrade" = "Your upgrade";
-"Cancel an existing reminder before adding another. Your reminder list is full." = "Cancel an existing reminder before adding another. Your reminder list is full.";

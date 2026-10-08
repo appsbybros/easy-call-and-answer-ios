@@ -24,14 +24,13 @@ public struct Snapshot: Codable, Equatable, Sendable {
     public var largeCards = true
     public var highContrast = false
     public var calmMode = false
-    public var trialStart: Date?
     public var latestSeen: Date?
     public init() {}
     public mutating func remove(_ id: UUID) {
         people.removeAll { $0.id == id }; reminders.removeAll { $0.personID == id }
     }
-    public func trialActive(now: Date) -> Bool {
-        guard let start = trialStart else { return false }
+    public func trialActive(start: Date?, now: Date) -> Bool {
+        guard let start else { return false }
         let effective = max(now, latestSeen ?? now)
         return effective >= start && effective.timeIntervalSince(start) < 14 * 86400
     }

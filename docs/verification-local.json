@@ -11,9 +11,10 @@
       "en",
       "he"
     ],
-    "entries_each": 117,
-    "required_literal_keys": 113,
+    "entries_each": 120,
+    "required_literal_keys": 93,
     "missing": []
   },
-  "full_android_build": "Blocked: missing lockscreenlib and referralslib project dependencies"
+  "full_android_build": "Blocked: missing lockscreenlib and referralslib project dependencies",
+  "latestLocalMacVerification": "Pending repository push approval; earlier six core and four iPhone UI tests passed on 736e877. StoreKit runtime failed; no final green build."
 }

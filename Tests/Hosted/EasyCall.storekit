@@ -26,6 +26,21 @@
       "productID": "com.appsbybros.easycall.lifetime",
       "referenceName": "Easy Call Lifetime",
       "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "0.00",
+      "familyShareable": false,
+      "internalID": "59084D03-73A4-4B93-A969-A2ACB02827B5",
+      "localizations": [
+        {
+          "locale": "en_US",
+          "displayName": "14-day Trial",
+          "description": "Try extra favorites and reminders for 14 days."
+        }
+      ],
+      "productID": "com.appsbybros.easycall.trial14",
+      "referenceName": "14-day Trial",
+      "type": "NonConsumable"
     }
   ],
   "settings": {

@@ -10,6 +10,8 @@ final class EasyCallUITests: XCTestCase {
         app.launch(); return app
     }
     private func capture(_ name:String) {
+        // UI actions can return while a sheet is animating. Capture the settled real screen.
+        Thread.sleep(forTimeInterval:1)
         let item=XCTAttachment(screenshot:XCUIScreen.main.screenshot());item.name=name;item.lifetime = .keepAlways;add(item)
     }
     func testEnglishScreensAndSafeCalling() throws {
@@ -18,7 +20,8 @@ final class EasyCallUITests: XCTestCase {
         app.buttons["Call Maya"].tap()
         XCTAssertTrue(app.alerts.staticTexts["This is a practice contact. No call was placed."].waitForExistence(timeout:3))
         app.alerts.buttons["OK"].tap()
-        app.buttons["Maya, Details and reminders"].tap();capture("en-02-person")
+        app.buttons["Maya, Details and reminders"].tap()
+        XCTAssertTrue(app.buttons["FaceTime Audio"].waitForExistence(timeout:5));capture("en-02-person")
         app.buttons["Done"].tap()
         app.tabBars.buttons["Keypad"].tap()
         for digit in ["0","2","5","5","5","0","1","2","3"] {app.buttons[digit].tap()}
@@ -35,6 +38,8 @@ final class EasyCallUITests: XCTestCase {
     func testAccessibilitySizeAndLandscape() throws {
         let app=launch(large:true)
         XCTAssertTrue(app.buttons["Call Maya"].waitForExistence(timeout:10))
+        for _ in 0..<3 where !app.buttons["Call Maya"].isHittable { app.swipeUp() }
+        XCTAssertTrue(app.buttons["Call Maya"].isHittable)
         capture("accessibility-people")
         app.tabBars.buttons["Keypad"].tap()
         XCUIDevice.shared.orientation = .landscapeLeft

@@ -15,7 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Test calling and persistence rules
-        run: swift test
+        run: |
+          python3 Scripts/validate-resources.py
+          swift test
       - name: Generate project
         run: |
           command -v xcodegen || brew install xcodegen
@@ -40,14 +42,14 @@ jobs:
           set -o pipefail
           xcrun simctl boot "$PHONE"
           xcrun simctl bootstatus "$PHONE" -b
-          xcodebuild test -project EasyCall.xcodeproj -scheme EasyCall -destination "platform=iOS Simulator,id=$PHONE" -parallel-testing-enabled NO -test-timeouts-enabled YES -default-test-execution-time-allowance 120 -maximum-test-execution-time-allowance 180 -derivedDataPath build/DerivedData -resultBundlePath build/Phone.xcresult CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- 2>&1 | tee build/phone.log
+          xcodebuild test -project EasyCall.xcodeproj -scheme EasyCall -only-testing:EasyCallUITests -destination "platform=iOS Simulator,id=$PHONE" -parallel-testing-enabled NO -test-timeouts-enabled YES -default-test-execution-time-allowance 120 -maximum-test-execution-time-allowance 180 -derivedDataPath build/DerivedData -resultBundlePath build/Phone.xcresult CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- 2>&1 | tee build/phone.log
       - name: iPad UI tests and screenshots
         run: |
           set -o pipefail
           xcrun simctl shutdown "$PHONE"
           xcrun simctl boot "$TABLET"
           xcrun simctl bootstatus "$TABLET" -b
-          xcodebuild test -project EasyCall.xcodeproj -scheme EasyCall -destination "platform=iOS Simulator,id=$TABLET" -parallel-testing-enabled NO -test-timeouts-enabled YES -default-test-execution-time-allowance 120 -maximum-test-execution-time-allowance 180 -derivedDataPath build/DerivedData -resultBundlePath build/Tablet.xcresult CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- 2>&1 | tee build/tablet.log
+          xcodebuild test -project EasyCall.xcodeproj -scheme EasyCall -only-testing:EasyCallUITests -destination "platform=iOS Simulator,id=$TABLET" -parallel-testing-enabled NO -test-timeouts-enabled YES -default-test-execution-time-allowance 120 -maximum-test-execution-time-allowance 180 -derivedDataPath build/DerivedData -resultBundlePath build/Tablet.xcresult CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- 2>&1 | tee build/tablet.log
       - name: Compile Release for physical iOS devices
         run: |
           set -o pipefail
@@ -64,6 +66,50 @@ jobs:
         if: always()
         with:
           name: EasyCall-verification
+          path: |
+            build/*.log
+            build/*.xcresult
+            build/screenshots
+          retention-days: 14
+  purchase-and-compact:
+    # Apple FB22237318 affects StoreKit Test on the 26.5 runtime installed on
+    # macos-latest. Exercise real StoreKit purchases on 26.1, retaining assertions.
+    # UI and device Release compilation above still use the latest runner SDK.
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.1.1.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate project and select compact iPhone
+        run: |
+          command -v xcodegen || brew install xcodegen
+          xcodegen generate
+          mkdir -p build
+          python3 - <<'PY'
+          import json,subprocess,os
+          devices=json.loads(subprocess.check_output(['xcrun','simctl','list','devices','available','--json']))['devices']
+          items=[x for runtime,values in devices.items() if runtime.endswith('iOS-26-1') for x in values]
+          phone=next(x for x in items if x['name']=='iPhone SE (3rd generation)')
+          with open(os.environ['GITHUB_ENV'],'a') as f:f.write(f"PHONE={phone['udid']}\n")
+          print('iPhone SE (3rd generation), iOS 26.1; full StoreKit and UI assertions')
+          PY
+      - name: Test purchases and compact layouts
+        run: |
+          set -o pipefail
+          xcrun simctl boot "$PHONE"
+          xcrun simctl bootstatus "$PHONE" -b
+          xcodebuild test -project EasyCall.xcodeproj -scheme EasyCall -destination "platform=iOS Simulator,id=$PHONE" -parallel-testing-enabled NO -test-timeouts-enabled YES -default-test-execution-time-allowance 120 -maximum-test-execution-time-allowance 180 -derivedDataPath build/DerivedData -resultBundlePath build/Compact.xcresult CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- 2>&1 | tee build/compact.log
+      - name: Export compact screenshots
+        if: always()
+        run: |
+          if [ -d build/Compact.xcresult ]; then
+            xcrun xcresulttool export attachments --path build/Compact.xcresult --output-path build/screenshots/Compact
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: EasyCall-purchases-and-compact
           path: |
             build/*.log
             build/*.xcresult
