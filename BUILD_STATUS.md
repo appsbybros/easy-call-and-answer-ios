@@ -1,43 +1,37 @@
-# Easy Call iOS verification — 8 October 2026
+# Easy Call iOS — verified source, 8 October 2026
 
-This application is implemented but is **not yet release-verified**.
+Source revision `8cc90fd` passed [Mac verification](https://github.com/appsbybros/easy-call-and-answer-ios/actions/runs/37767175315). The final handoff
+commit adds the resulting screenshots and documentation without changing app code.
+Its own workflow must also be green before the TestFlight gate allows that commit.
 
-Last pushed revision: `736e877`. GitHub run:
-https://github.com/appsbybros/easy-call-and-answer-ios/actions/runs/37732679519
+The first attempt hit an Xcode simulator launch timeout before the accessibility test began. The failed job was rerun on the unchanged commit; the successful result below is that retry.
 
-- Native iOS application compiled; 6 Swift core tests passed.
-- 4 iPhone simulator UI tests passed: English calling flow with fictional contacts,
-  Hebrew, largest accessibility text/landscape, and manual contact save/relaunch/remove.
-- StoreKit Test failed while loading its configuration on the iOS 26.5 runtime:
-  `SKInternalErrorDomain Code=3`, “Error saving configuration file.” Apple acknowledges
-  this runtime problem as FB22237318: https://developer.apple.com/forums/thread/826971
-- iPad tests and device Release compilation did not run after that failure.
+- Six Swift core tests passed.
+- Four UI tests passed on each of the large iPhone, iPad and compact iPhone simulators:
+  English, Hebrew, maximum accessibility text/landscape, and saved-contact persistence/removal.
+- Two StoreKit tests passed: free-trial original purchase date/expiry/restore/refund,
+  and lifetime purchase/restore/refund. Purchases used local StoreKit test data.
+- Release compiled successfully for physical iOS devices, with signing disabled.
+- Sixteen original English/Hebrew screenshots are packaged for 6.9-inch iPhone and
+  13-inch iPad. Exact device names, hashes and source commit are in
+  `app-store/screenshots-provenance.json`; browse `docs/preview-compiled.html`.
+- English and Hebrew resources and listing lengths passed validation.
 
-Local changes awaiting the next GitHub verification:
+Purchase tests run on Xcode 26.1.1 / iOS 26.1 because Apple acknowledges a StoreKit
+Test configuration failure on iOS 26.5 (FB22237318). Current-runner iPhone/iPad and
+Release checks remain enabled. Assertions were not weakened to bypass that failure.
 
-- A separate required purchase/compact-screen job on Xcode 26.1.1 and iOS 26.1,
-  while current-runner iPhone/iPad and Release verification remain required.
-- Improved large-text space, keyboard dismissal and screenshot settling.
-- A free non-consumable `com.appsbybros.easycall.trial14`, named `14-day Trial`,
-  uses Apple's verified original transaction date. Both trial and lifetime purchase
-  restore/refund tests remain enabled. The local test price is zero; actual Apple
-  products have not been created. This follows App Review guideline 3.1.1.
-- Reminder permission-delay, duplicate-save and dismissal handling; contact removal
-  also cancels delivered reminders.
-
-The final local changes have **not** been compiled on a Mac. Automatic approval
-review rejected the requested repository push; an explicit follow-up approval
-question is pending. No alternative upload path was used.
-
-`Scripts/validate-resources.py` checks localized resources and store text only.
-Earlier screenshots in `docs/preview-compiled.html` identify their exact source
-commit and are review evidence, not a completed final screenshot submission.
+Apple products are not configured: `com.appsbybros.easycall.lifetime` is the
+optional lifetime upgrade; `com.appsbybros.easycall.trial14` must be a free
+non-consumable named **14-day Trial**, with Family Sharing off. Its verified original
+purchase date determines the trial period. Calling and four favorites stay free.
 
 No physical iPhone calls, Bluetooth routes, real Contacts imports or delivered
-notifications have been tested. TestFlight signing requires the six documented
-repository secrets and a passing verification run for the exact upload commit.
-No signed IPA, App Store Connect build or public store release is claimed.
+notifications have been tested. No signed IPA or TestFlight/App Store release is
+claimed. Follow `docs/release.html` for the app record, products, six signing/upload
+secrets and remaining physical-device checks. TestFlight requires a successful
+verification run for the exact upload commit.
 
-The Android reliability audit is `docs/android-review.html`; original SimpleCall
-working-tree changes were preserved. Nine isolated adapter tests passed, while its
-full Android test task is blocked by missing sibling library projects.
+The original SimpleCall working-tree changes were preserved. Nine isolated Android
+call-adapter tests passed; full Android tests are blocked by missing sibling libraries.
+See `docs/android-review.html` for specific code findings and limits.

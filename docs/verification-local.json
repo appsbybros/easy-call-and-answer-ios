@@ -16,5 +16,5 @@
     "missing": []
   },
   "full_android_build": "Blocked: missing lockscreenlib and referralslib project dependencies",
-  "latestLocalMacVerification": "Pending repository push approval; earlier six core and four iPhone UI tests passed on 736e877. StoreKit runtime failed; no final green build."
+  "latestLocalMacVerification": "Passed on 8cc90fd: https://github.com/appsbybros/easy-call-and-answer-ios/actions/runs/37767175315; see verification-mac.json for exact scope."
 }

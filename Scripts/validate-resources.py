@@ -19,9 +19,8 @@ for path in list(root.rglob('*.json'))+list(root.rglob('*.storekit')):
     json.loads(path.read_text(encoding='utf-8'))
 plistlib.loads((root/'Resources/PrivacyInfo.xcprivacy').read_bytes())
 for locale in ('en-US','he'):
-    for name,limit in [('name.txt',30),('subtitle.txt',30),('keywords.txt',100),('description.txt',4000),('promotional-text.txt',170)]:
+    for name,limit in [('name.txt',30),('subtitle.txt',30),('keywords.txt',100),('description.txt',4000),('promotional_text.txt',170),('whats_new.txt',4000)]:
         path=root/f'app-store/{locale}/{name}'
-        if path.exists():
-            value=path.read_text(encoding='utf-8').strip()
-            assert value and len(value)<=limit,(locale,name,len(value),limit)
+        value=path.read_text(encoding='utf-8').strip()
+        assert value and len(value)<=limit,(locale,name,len(value),limit)
 print(json.dumps({'resourceChecks':'passed','localizedEntries':counts,'literalKeysChecked':len(keys),'SwiftCompilation':'not performed by this script'}))
