@@ -1,0 +1,34 @@
+{
+  "bundle_id": "com.appsbybros.easycall",
+  "sku_suggestion": "easy-call-ios-2026",
+  "version": "1.0.0",
+  "primary_category": "Utilities",
+  "secondary_category": "Lifestyle",
+  "copyright": "2026 Apps by Bros",
+  "support_email": "support@easycallandanswer.com",
+  "privacy_answers": {
+    "tracking": false,
+    "data_collected_by_app": false,
+    "third_party_ads": false,
+    "note": "On-device contacts and optional local notifications only. Confirm again if SDKs or data flows change."
+  },
+  "in_app_purchase": {
+    "type": "Non-Consumable",
+    "product_id": "com.appsbybros.easycall.lifetime",
+    "reference_name": "Easy Call Lifetime",
+    "display_name": "Easy Call Lifetime",
+    "description": "More favorite people and gentle reminders.",
+    "suggested_us_price": 9.99,
+    "price_status": "Proposal only; no price or product created in App Store Connect",
+    "family_sharing": "Recommended if acceptable; enabling it is irreversible."
+  },
+  "review_notes": "No login. Four favorites and keypad are free. Add contacts manually or through the system picker. Phone calls hand off to tel: and answering/ending is handled by iOS. No default-dialer entitlement, call blocking, call recording or automatic dialing. Extras have an explicitly started 14-day local preview (not a subscription or auto-renewing trial). Purchase ID: com.appsbybros.easycall.lifetime. Existing saved people remain callable after preview expiry. On iPad, supported FaceTime Audio is available; carrier calls require a capable phone. Notification permission is requested only when saving a reminder.",
+  "release_not_done": [
+    "Apple app record and purchase setup",
+    "Repository signing secrets",
+    "Signed device/TestFlight verification",
+    "Public hosting of privacy/support URLs",
+    "Owner business/contact and pricing review",
+    "Final App Review questionnaire and submission"
+  ]
+}

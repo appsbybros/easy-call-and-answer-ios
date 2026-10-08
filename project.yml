@@ -45,7 +45,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.appsbybros.easycall.uitests
         GENERATE_INFOPLIST_FILE: YES
   EasyCallTests:
-    type: bundle.unit-testing
+    type: bundle.unit-test
     platform: iOS
     sources: [Tests/Hosted]
     dependencies:
