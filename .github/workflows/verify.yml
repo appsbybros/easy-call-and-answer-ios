@@ -1,0 +1,60 @@
+name: Build, test and capture iOS
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test calling and persistence rules
+        run: swift test
+      - name: Generate project
+        run: |
+          command -v xcodegen || brew install xcodegen
+          xcodegen generate
+          mkdir -p build
+      - name: Select available simulators
+        run: |
+          python3 - <<'PY'
+          import json,subprocess,os
+          devices=json.loads(subprocess.check_output(['xcrun','simctl','list','devices','available','--json']))['devices']
+          items=[x for runtime,values in devices.items() if 'iOS' in runtime for x in values]
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              for kind,prefix in [('PHONE','iPhone'),('TABLET','iPad')]:
+                  found=next(x for x in items if x['name'].startswith(prefix))
+                  f.write(f"{kind}={found['udid']}\n")
+                  print(kind,found['name'])
+          PY
+      - name: iPhone UI tests and screenshots
+        run: |
+          set -o pipefail
+          xcodebuild test -project EasyCall.xcodeproj -scheme EasyCall -destination "platform=iOS Simulator,id=$PHONE" -derivedDataPath build/DerivedData -resultBundlePath build/Phone.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee build/phone.log
+      - name: iPad UI tests and screenshots
+        run: |
+          set -o pipefail
+          xcodebuild test -project EasyCall.xcodeproj -scheme EasyCall -destination "platform=iOS Simulator,id=$TABLET" -derivedDataPath build/DerivedData -resultBundlePath build/Tablet.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee build/tablet.log
+      - name: Export screenshot attachments
+        if: always()
+        run: |
+          for name in Phone Tablet; do
+            if [ -d "build/$name.xcresult" ]; then
+              xcrun xcresulttool export attachments --path "build/$name.xcresult" --output-path "build/screenshots/$name"
+            fi
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: EasyCall-verification
+          path: |
+            build/*.log
+            build/*.xcresult
+            build/screenshots
+          retention-days: 14
