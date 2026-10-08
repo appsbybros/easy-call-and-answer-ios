@@ -59,7 +59,7 @@ public struct DialGate: Sendable {
     private var last: Date?
     public init() {}
     public mutating func admit(now: Date) -> Bool {
-        if let last, now.timeIntervalSince(last) < 2 { return false }
+        if let last, (0..<2).contains(now.timeIntervalSince(last)) { return false }
         last = now; return true
     }
 }

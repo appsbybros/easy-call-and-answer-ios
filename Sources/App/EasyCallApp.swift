@@ -26,7 +26,7 @@ extension Notification.Name { static let openPerson = Notification.Name("EasyCal
                 .environmentObject(library).environmentObject(calling).environmentObject(purchases)
                 .tint(Palette.teal)
                 .preferredColorScheme(.light)
-                .environment(\.colorSchemeContrast, library.value.highContrast ? .increased : .standard)
+                .contrast(library.value.highContrast ? 1.25 : 1)
                 .onChange(of: phase) { _, value in
                     if value == .active { library.recordVisit(); Task { await purchases.refresh() } }
                 }

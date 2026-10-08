@@ -15,6 +15,7 @@ final class CoreTests:XCTestCase {
         var gate = DialGate();let now = Date()
         XCTAssertTrue(gate.admit(now:now));XCTAssertFalse(gate.admit(now:now.addingTimeInterval(0.1)))
         XCTAssertTrue(gate.admit(now:now.addingTimeInterval(2.1)))
+        XCTAssertTrue(gate.admit(now:now.addingTimeInterval(-3600)))
     }
     func testTrialExpiresAndClockRollbackDoesNotRenewIt() {
         var s = Snapshot();let now = Date();s.trialStart = now
