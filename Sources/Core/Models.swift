@@ -43,7 +43,7 @@ public enum PhoneNumber {
         for ch in input {
             if let digit = ch.wholeNumberValue, (0...9).contains(digit) { output += String(digit) }
             else if ch == "+", output.isEmpty { output += "+" }
-            else if ch.isWhitespace || "()-–.".contains(ch) { continue }
+            else if ch.isWhitespace || "()-–.\u{200E}\u{200F}\u{202A}\u{202B}\u{202C}\u{202D}\u{202E}\u{2066}\u{2067}\u{2068}\u{2069}".contains(ch) { continue }
             else { return nil }
         }
         let count = output.filter(\.isNumber).count
@@ -68,6 +68,8 @@ public enum LibraryCodec {
         let value = try JSONDecoder().decode(Snapshot.self, from: data)
         guard value.version == 1, value.people.count <= 100,
               Set(value.people.map(\.id)).count == value.people.count,
+              Set(value.reminders.map(\.id)).count == value.reminders.count,
+              value.reminders.allSatisfy({ reminder in value.people.contains { $0.id == reminder.personID } }),
               value.people.allSatisfy({ !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && PhoneNumber.normalized($0.phone) != nil && ($0.photo?.count ?? 0) <= 2_000_000 }) else {
             throw CocoaError(.fileReadCorruptFile)
         }

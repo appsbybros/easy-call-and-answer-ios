@@ -1,0 +1,19 @@
+{
+  "android_call_adapter": {
+    "tests": 9,
+    "failures": 0,
+    "errors": 0,
+    "scope": "Isolated Robolectric SDK 28 harness, not full application or carrier calls",
+    "source_sha256": "85e9c9e8bcc85c8470850070f85ff9d71238aa6ac264dd6fb80ea5a04682dca5"
+  },
+  "localization": {
+    "locales": [
+      "en",
+      "he"
+    ],
+    "entries_each": 117,
+    "required_literal_keys": 113,
+    "missing": []
+  },
+  "full_android_build": "Blocked: missing lockscreenlib and referralslib project dependencies"
+}

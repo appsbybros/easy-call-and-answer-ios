@@ -29,7 +29,9 @@ jobs:
           items=[x for runtime,values in devices.items() if 'iOS' in runtime for x in values]
           with open(os.environ['GITHUB_ENV'],'a') as f:
               for kind,prefix in [('PHONE','iPhone'),('TABLET','iPad')]:
-                  found=next(x for x in items if x['name'].startswith(prefix))
+                  candidates=[x for x in items if x['name'].startswith(prefix)]
+                  wanted='Pro Max' if kind=='PHONE' else '13-inch'
+                  found=next((x for x in candidates if wanted in x['name']),candidates[0])
                   f.write(f"{kind}={found['udid']}\n")
                   print(kind,found['name'])
           PY

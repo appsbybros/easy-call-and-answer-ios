@@ -32,7 +32,7 @@ func L(_ key: String) -> String { NSLocalizedString(key, comment: "") }
         guard !readFailed else { error = L("Saved data needs attention before you can make changes."); return false }
         do {
             try FileManager.default.createDirectory(at:file.deletingLastPathComponent(),withIntermediateDirectories:true)
-            try LibraryCodec.encode(value).write(to:file,options:[.atomic,.completeUntilFirstUserAuthentication])
+            try LibraryCodec.encode(value).write(to:file,options:[.atomic,.completeFileProtectionUntilFirstUserAuthentication])
             return true
         } catch { self.error = L("Your changes could not be saved. Please try again."); return false }
     }
@@ -147,7 +147,11 @@ struct ContactPicker: UIViewControllerRepresentable {
             var photo: Data?
             if let data = contact.thumbnailImageData,let image = UIImage(data:data) {
                 let size = CGSize(width:320,height:320)
-                photo = UIGraphicsImageRenderer(size:size).jpegData(withCompressionQuality:0.8) { _ in image.draw(in:CGRect(origin:.zero,size:size)) }
+                let scale=max(size.width/image.size.width,size.height/image.size.height)
+                let drawn=CGSize(width:image.size.width*scale,height:image.size.height*scale)
+                photo = UIGraphicsImageRenderer(size:size).jpegData(withCompressionQuality:0.8) { _ in
+                    image.draw(in:CGRect(x:(size.width-drawn.width)/2,y:(size.height-drawn.height)/2,width:drawn.width,height:drawn.height))
+                }
             }
             parent.selected(Person(name:name,phone:phone.stringValue,photo:photo)); parent.dismiss()
         }
@@ -156,11 +160,12 @@ struct ContactPicker: UIViewControllerRepresentable {
 }
 
 @MainActor enum Reminders {
-    enum Failure: Error { case invalidDate, permissionDenied }
+    enum Failure: Error { case invalidDate, permissionDenied, tooMany }
     static func schedule(person:Person,date:Date) async throws -> CallReminder {
         guard date > Date().addingTimeInterval(30) else { throw Failure.invalidDate }
         let center = UNUserNotificationCenter.current()
         guard try await center.requestAuthorization(options:[.alert,.sound]) else { throw Failure.permissionDenied }
+        guard await center.pendingNotificationRequests().count < 60 else { throw Failure.tooMany }
         let reminder = CallReminder(personID:person.id,date:date)
         let content = UNMutableNotificationContent()
         content.title = L("Time for a call")

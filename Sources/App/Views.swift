@@ -66,7 +66,6 @@ struct HomeView: View {
                         Spacer(minLength:0)
                         Image(systemName:"phone.fill").font(.system(size:30)).foregroundStyle(Palette.teal).frame(width:68,height:68).background(Palette.gold,in:RoundedRectangle(cornerRadius:24)).accessibilityHidden(true)
                     }
-                    if library.demonstration { Label(L("Practice mode • calls are disabled"),systemImage:"hand.raised.fill").font(.subheadline).padding(12).background(.white,in:RoundedRectangle(cornerRadius:14)) }
                     if library.value.people.isEmpty {
                         VStack(alignment:.leading,spacing:20) {
                             Image(systemName:"person.2.fill").font(.system(size:52)).foregroundStyle(Palette.teal).accessibilityHidden(true)
@@ -251,24 +250,35 @@ struct ReminderView:View {
             Form {
                 Section { Text(person.name).font(.title.bold()); DatePicker(L("When"),selection:$date,in:Date()...).datePickerStyle(.graphical) }
                 Section { Text(L("A gentle reminder opens this person’s card. It never places a call automatically.")) }
-                Section { Button(L("Save reminder")) {
-                    Task {
-                        saving=true; defer {saving=false}
-                        guard !library.demonstration else { dismiss();return }
-                        do {
-                            let item=try await Reminders.schedule(person:person,date:date)
-                            let before=library.value
-                            library.value.reminders.removeAll{$0.date < Date()}
-                            library.value.reminders.append(item)
-                            if library.save() { dismiss() }
-                            else { library.value=before; UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers:[item.id.uuidString]); error=library.error }
-                        } catch Reminders.Failure.permissionDenied { error=L("Allow notifications in iPhone Settings to receive call reminders.") }
-                        catch { error=L("Choose a future time and try again. The reminder was not saved.") }
-                    }
-                }.buttonStyle(ActionStyle()).disabled(saving) }.listRowBackground(Color.clear)
+                Section {
+                    Button(L("Save reminder")) { Task { await saveReminder() } }
+                        .buttonStyle(ActionStyle()).disabled(saving)
+                }.listRowBackground(Color.clear)
             }.scrollContentBackground(.hidden).background(Palette.cream).navigationTitle(L("Call reminder")).navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement:.cancellationAction) {Button(L("Cancel")){dismiss()}.frame(minHeight:48)} }
                 .alert(L("Please check"),isPresented:Binding(get:{error != nil},set:{if !$0 {error=nil}})) { Button(L("OK")){error=nil} } message:{Text(error ?? "")}
+        }
+    }
+    @MainActor private func saveReminder() async {
+        saving=true; defer { saving=false }
+        guard !library.demonstration else { dismiss();return }
+        do {
+            let item=try await Reminders.schedule(person:person,date:date)
+            let before=library.value
+            library.value.reminders.removeAll { $0.date < Date() }
+            library.value.reminders.append(item)
+            if library.save() { dismiss() }
+            else {
+                library.value=before
+                UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers:[item.id.uuidString])
+                self.error=library.error
+            }
+        } catch Reminders.Failure.permissionDenied {
+            self.error=L("Allow notifications in iPhone Settings to receive call reminders.")
+        } catch Reminders.Failure.tooMany {
+            self.error=L("Cancel an existing reminder before adding another. Your reminder list is full.")
+        } catch {
+            self.error=L("Choose a future time and try again. The reminder was not saved.")
         }
     }
 }
@@ -324,6 +334,7 @@ struct UpgradeView:View {
                 if purchases.unlocked {
                     Text(L("Lifetime access is active")).font(.title2.bold())
                 } else {
+                    if purchases.busy { ProgressView().frame(maxWidth:.infinity).accessibilityLabel(L("Purchases")) }
                     if library.value.trialStart == nil {
                         Button(L("Try extras free for 14 days")) {
                             let before=library.value

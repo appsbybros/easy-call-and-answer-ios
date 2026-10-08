@@ -7,6 +7,7 @@ final class CoreTests:XCTestCase {
         XCTAssertEqual(PhoneNumber.normalized("٠٥٠ ١٢٣ ٤٥٦٧"),"0501234567")
         XCTAssertEqual(PhoneNumber.normalized("+९७२ ५० १२३ ४५६७"),"+972501234567")
         XCTAssertEqual(PhoneNumber.normalized("112"),"112")
+        XCTAssertEqual(PhoneNumber.normalized("\u{200E}+972 50 1234567\u{200F}"),"+972501234567")
     }
     func testRejectsCommandsAndEmbeddedLinks() {
         for input in ["*#21#","tel:1234","1234?foo=bar","1234;9999","1+234","+","1","1234567890123456","abc1234"] { XCTAssertNil(PhoneNumber.url(input),input) }
