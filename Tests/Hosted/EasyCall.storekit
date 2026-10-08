@@ -1,0 +1,48 @@
+{
+  "appPolicies": {
+    "eula": "",
+    "policies": [
+      {
+        "locale": "en_US",
+        "policyText": "",
+        "policyURL": ""
+      }
+    ]
+  },
+  "identifier": "A6B3A445-E79F-4A3A-9FE3-5A7F2A8C1A64",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "9.99",
+      "familyShareable": true,
+      "internalID": "F01A6C75-D8DF-4F01-8E37-E2451A32A8E0",
+      "localizations": [
+        {
+          "locale": "en_US",
+          "displayName": "Easy Call Lifetime",
+          "description": "More favorite people and gentle reminders."
+        }
+      ],
+      "productID": "com.appsbybros.easycall.lifetime",
+      "referenceName": "Easy Call Lifetime",
+      "type": "NonConsumable"
+    }
+  ],
+  "settings": {
+    "_askToBuyEnabled": false,
+    "_billingGracePeriodEnabled": false,
+    "_billingIssuesEnabled": false,
+    "_disableDialogs": false,
+    "_failTransactionsEnabled": false,
+    "_locale": "en_US",
+    "_renewalBillingIssuesEnabled": false,
+    "_storefront": "USA",
+    "_storeKitErrors": [],
+    "_timeRate": 0
+  },
+  "subscriptionGroups": [],
+  "version": {
+    "major": 4,
+    "minor": 0
+  }
+}

@@ -44,14 +44,25 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.appsbybros.easycall.uitests
         GENERATE_INFOPLIST_FILE: YES
+  EasyCallTests:
+    type: bundle.unit-testing
+    platform: iOS
+    sources: [Tests/Hosted]
+    dependencies:
+      - target: EasyCall
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.appsbybros.easycall.tests
+        GENERATE_INFOPLIST_FILE: YES
 schemes:
   EasyCall:
     build:
       targets:
         EasyCall: all
         EasyCallUITests: [test]
+        EasyCallTests: [test]
     test:
       gatherCoverageData: true
-      targets: [EasyCallUITests]
+      targets: [EasyCallTests, EasyCallUITests]
     archive:
       config: Release
