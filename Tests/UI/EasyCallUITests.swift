@@ -14,6 +14,11 @@ final class EasyCallUITests: XCTestCase {
         Thread.sleep(forTimeInterval:1)
         let item=XCTAttachment(screenshot:XCUIScreen.main.screenshot());item.name=name;item.lifetime = .keepAlways;add(item)
     }
+    private func selectTab(_ title:String,in app:XCUIApplication) {
+        // iPad exposes its floating tabs as ordinary buttons, without a TabBar ancestor.
+        let tab=app.buttons.matching(identifier:title).firstMatch
+        XCTAssertTrue(tab.waitForExistence(timeout:5));tab.tap()
+    }
     func testEnglishScreensAndSafeCalling() throws {
         let app=launch()
         XCTAssertTrue(app.buttons["Call Maya"].waitForExistence(timeout:10)); capture("en-01-people")
@@ -23,19 +28,19 @@ final class EasyCallUITests: XCTestCase {
         app.buttons["Maya, Details and reminders"].tap()
         XCTAssertTrue(app.buttons["FaceTime Audio"].waitForExistence(timeout:5));capture("en-02-person")
         app.buttons["Done"].tap()
-        app.tabBars.buttons["Keypad"].tap()
+        selectTab("Keypad",in:app)
         for digit in ["0","2","5","5","5","0","1","2","3"] {app.buttons[digit].tap()}
         XCTAssertEqual(app.textFields["dial-number"].value as? String,"025550123")
         XCTAssertTrue(app.buttons["Call"].isHittable,"Digits and Call must fit a portrait phone at the standard text size")
         capture("en-03-keypad")
-        app.tabBars.buttons["Help"].tap();capture("en-04-help")
-        app.tabBars.buttons["People"].tap();app.buttons["Settings"].tap();capture("en-05-settings")
+        selectTab("Help",in:app);capture("en-04-help")
+        selectTab("People",in:app);app.buttons["Settings"].tap();capture("en-05-settings")
     }
     func testHebrewScreens() throws {
         let app=launch("he")
         XCTAssertTrue(app.buttons["התקשרות Maya"].waitForExistence(timeout:10));capture("he-01-people")
-        app.tabBars.buttons["מקשים"].tap();capture("he-02-keypad")
-        app.tabBars.buttons["עזרה"].tap();capture("he-03-help")
+        selectTab("מקשים",in:app);capture("he-02-keypad")
+        selectTab("עזרה",in:app);capture("he-03-help")
     }
     func testAccessibilitySizeAndLandscape() throws {
         let app=launch(large:true)
@@ -43,7 +48,7 @@ final class EasyCallUITests: XCTestCase {
         for _ in 0..<3 where !app.buttons["Call Maya"].isHittable { app.swipeUp() }
         XCTAssertTrue(app.buttons["Call Maya"].isHittable)
         capture("accessibility-people")
-        app.tabBars.buttons["Keypad"].tap()
+        selectTab("Keypad",in:app)
         XCUIDevice.shared.orientation = .landscapeLeft
         capture("landscape-keypad-accessibility")
         app.buttons["1"].tap();app.buttons["2"].tap()
