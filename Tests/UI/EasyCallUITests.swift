@@ -1,7 +1,14 @@
 import XCTest
 
 final class EasyCallUITests: XCTestCase {
-    override func setUpWithError() throws { continueAfterFailure = false }
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+        XCUIDevice.shared.orientation = .portrait
+    }
+    override func tearDownWithError() throws {
+        XCUIDevice.shared.orientation = .portrait
+        XCUIApplication().terminate()
+    }
     private func launch(_ locale:String = "en",large:Bool=false,demo:Bool=true) -> XCUIApplication {
         let app=XCUIApplication()
         app.launchArguments=["-AppleLanguages","(\(locale))","-AppleLocale",locale == "he" ? "he_IL" : "en_US"]
@@ -18,6 +25,20 @@ final class EasyCallUITests: XCTestCase {
         // iPad exposes its floating tabs as ordinary buttons, without a TabBar ancestor.
         let tab=app.buttons.matching(identifier:title).firstMatch
         XCTAssertTrue(tab.waitForExistence(timeout:5));tab.tap()
+    }
+    private func reveal(_ element:XCUIElement,in app:XCUIApplication) {
+        // Use frame-relative vertical drags. The newer runtime's generic
+        // application.swipeUp() recorded a horizontal path after rotation.
+        for _ in 0..<20 where !element.isHittable {
+            let top=app.coordinate(withNormalizedOffset:CGVector(dx:0.2,dy:0.4))
+            let bottom=app.coordinate(withNormalizedOffset:CGVector(dx:0.2,dy:0.7))
+            if element.exists && element.frame.midY < app.frame.height*0.35 {
+                top.press(forDuration:0.05,thenDragTo:bottom)
+            } else {
+                bottom.press(forDuration:0.05,thenDragTo:top)
+            }
+        }
+        XCTAssertTrue(element.isHittable)
     }
     func testEnglishScreensAndSafeCalling() throws {
         let app=launch()
@@ -50,10 +71,11 @@ final class EasyCallUITests: XCTestCase {
         capture("accessibility-people")
         selectTab("Keypad",in:app)
         XCUIDevice.shared.orientation = .landscapeLeft
+        defer { XCUIDevice.shared.orientation = .portrait }
         capture("landscape-keypad-accessibility")
         app.buttons["1"].tap();app.buttons["2"].tap()
         let call=app.buttons["Call"]
-        for _ in 0..<8 where !call.isHittable {app.swipeUp()}
+        reveal(call,in:app)
         XCTAssertTrue(call.isHittable,"The Call control must remain reachable at maximum text size in landscape")
         XCTAssertTrue(call.isEnabled)
         capture("landscape-call-accessibility")
@@ -69,12 +91,12 @@ final class EasyCallUITests: XCTestCase {
         let phone=app.textFields["Phone number"];phone.tap();phone.typeText("+12025550199")
         XCTAssertEqual(phone.value as? String,"+12025550199")
         app.buttons["Done"].tap()
-        app.swipeUp();app.buttons["Save person"].tap()
+        let save=app.buttons["Save person"];reveal(save,in:app);save.tap()
         XCTAssertTrue(app.buttons["Call QA Contact"].waitForExistence(timeout:5))
         app.terminate();app.launch()
         XCTAssertTrue(app.buttons["Call QA Contact"].waitForExistence(timeout:5))
         app.buttons["QA Contact, Details and reminders"].tap()
-        app.swipeUp();app.buttons["Remove"].tap()
+        let remove=app.buttons["Remove"];reveal(remove,in:app);remove.tap()
         let removeButtons=app.buttons.matching(identifier:"Remove").allElementsBoundByIndex
         try XCTUnwrap(removeButtons.first(where: { $0.isHittable })).tap()
         XCTAssertTrue(app.buttons["Start with someone you love"].exists || app.staticTexts["Start with someone you love"].waitForExistence(timeout:5))

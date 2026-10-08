@@ -19,11 +19,13 @@ jobs:
           python3 Scripts/validate-resources.py
           swift test
       - name: Generate project
+        id: project
         run: |
           command -v xcodegen || brew install xcodegen
           xcodegen generate
           mkdir -p build
       - name: Select available simulators
+        id: devices
         run: |
           python3 - <<'PY'
           import json,subprocess,os
@@ -44,6 +46,7 @@ jobs:
           xcrun simctl bootstatus "$PHONE" -b
           xcodebuild test -project EasyCall.xcodeproj -scheme EasyCall -only-testing:EasyCallUITests -destination "platform=iOS Simulator,id=$PHONE" -parallel-testing-enabled NO -test-timeouts-enabled YES -default-test-execution-time-allowance 120 -maximum-test-execution-time-allowance 180 -derivedDataPath build/DerivedData -resultBundlePath build/Phone.xcresult CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- 2>&1 | tee build/phone.log
       - name: iPad UI tests and screenshots
+        if: ${{ !cancelled() && steps.devices.outcome == 'success' }}
         run: |
           set -o pipefail
           xcrun simctl shutdown "$PHONE"
@@ -51,6 +54,7 @@ jobs:
           xcrun simctl bootstatus "$TABLET" -b
           xcodebuild test -project EasyCall.xcodeproj -scheme EasyCall -only-testing:EasyCallUITests -destination "platform=iOS Simulator,id=$TABLET" -parallel-testing-enabled NO -test-timeouts-enabled YES -default-test-execution-time-allowance 120 -maximum-test-execution-time-allowance 180 -derivedDataPath build/DerivedData -resultBundlePath build/Tablet.xcresult CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- 2>&1 | tee build/tablet.log
       - name: Compile Release for physical iOS devices
+        if: ${{ !cancelled() && steps.project.outcome == 'success' }}
         run: |
           set -o pipefail
           xcodebuild build -project EasyCall.xcodeproj -scheme EasyCall -configuration Release -destination 'generic/platform=iOS' -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO 2>&1 | tee build/release.log
