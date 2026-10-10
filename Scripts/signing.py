@@ -11,6 +11,19 @@ if sys.argv[1]=='prepare':
     for name,filename in [('DISTRIBUTION_P12_BASE64','distribution.p12'),('PROVISION_PROFILE_BASE64','profile.mobileprovision')]:
         write_private(temp/filename,base64.b64decode(''.join(os.environ[name].split()),validate=True))
     write_private(Path.home()/'.appstoreconnect/private_keys'/f'AuthKey_{key_id}.p8',os.environ['ASC_PRIVATE_KEY'].encode())
+elif sys.argv[1]=='prepare-cloud':
+    # Cloud-managed signing: no certificate or profile files; Xcode signs the export through the API key
+    # (a Team key with the Admin role), the way the Minik apps upload.
+    assert re.fullmatch(r'[A-Z0-9]{10}',key_id),'Check ASC_KEY_ID.'
+    team=''.join(os.environ.get('APPLE_TEAM_ID','').split())
+    assert re.fullmatch(r'[A-Z0-9]{10}',team),'Check APPLE_TEAM_ID (10 characters, Membership details).'
+    key_path=Path.home()/'.appstoreconnect/private_keys'/f'AuthKey_{key_id}.p8'
+    write_private(key_path,os.environ['ASC_PRIVATE_KEY'].encode())
+    export={'method':'app-store-connect','destination':'export','signingStyle':'automatic','teamID':team,'manageAppVersionAndBuildNumber':False,'stripSwiftSymbols':True}
+    write_private(temp/'ExportOptions.plist',plistlib.dumps(export))
+    with open(os.environ['GITHUB_ENV'],'a') as stream:
+        stream.write(f'SIGNING_TEAM={team}\nASC_KEY_PATH={key_path}\n')
+    print('Cloud signing prepared for team '+team+'.')
 elif sys.argv[1]=='validate':
     profile=plistlib.loads((temp/'profile.plist').read_bytes())
     team=profile['TeamIdentifier'][0];uuid=profile['UUID'];entitlements=profile['Entitlements']
