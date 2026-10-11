@@ -150,17 +150,17 @@ struct PersonEditor: View {
                 }
                 Section(L("The person")) {
                     TextField(L("Name"),text:$person.name).textContentType(.name).font(.title2).frame(minHeight:56)
-                    TextField(L("Phone number"),text:$person.phone).keyboardType(.phonePad).textContentType(.telephoneNumber).environment(\.layoutDirection,.leftToRight).font(.title2).frame(minHeight:56)
+                    // UIKit field (ISSUE-002): on iPad the SwiftUI field did not draw typed digits while editing.
+                    PhoneNumberField(title:L("Phone number"),text:$person.phone,minHeight:56)
                     TextField(L("A useful note (optional)"),text:$person.note,axis:.vertical).lineLimit(3...6).font(.title3)
                 }
                 Section {
                     Text(L("Check the number, including its country code when needed. Calling opens Apple’s Phone app.")).font(.body)
                     Button(L("Save person")) {
-                        person.name=person.name.trimmingCharacters(in:.whitespacesAndNewlines)
-                        person.note=String(person.note.prefix(500))
-                        guard !person.name.isEmpty,let normalized=PhoneNumber.normalized(person.phone) else { problem=L("Enter a name and a valid phone number."); return }
-                        person.phone=normalized
-                        if library.upsert(person) { dismiss() } else { problem=library.error }
+                        // The form keeps exactly what was typed. Digits from any keyboard and
+                        // separators are normalized only now, in the saved copy.
+                        guard let ready=person.preparedForSaving() else { problem=L("Enter a name and a valid phone number."); return }
+                        if library.upsert(ready) { dismiss() } else { problem=library.error }
                     }.buttonStyle(ActionStyle())
                 }.listRowBackground(Color.clear)
             }.scrollContentBackground(.hidden).background(Palette.cream).scrollDismissesKeyboard(.interactively)
@@ -238,7 +238,7 @@ struct KeypadView: View {
            VStack(alignment:.leading,spacing:12) {
             if geometry.size.height >= 900 && !type.isAccessibilitySize { SectionTitle(title:"A number to call",subtitle:"Take your time. Check the number, then tap Call.") }
             HStack {
-                TextField(L("Phone number"),text:$number).keyboardType(.phonePad).font(.largeTitle.monospacedDigit()).accessibilityIdentifier("dial-number")
+                PhoneNumberField(title:L("Phone number"),text:$number,textStyle:.largeTitle,monospacedDigits:true,clearButton:false,identifier:"dial-number",textColor:UIColor(Palette.ink))
                 Button { if !number.isEmpty {number.removeLast()} } label:{Image(systemName:"delete.left").font(.title2).frame(width:60,height:compact ? 48 : 64)}.accessibilityLabel(L("Delete last digit"))
             }.padding(compact ? 12 : 18).background(.white,in:RoundedRectangle(cornerRadius:22)).environment(\.layoutDirection,.leftToRight)
             LazyVGrid(columns:Array(repeating:GridItem(.flexible(),spacing:compact ? 8 : 14),count:3),spacing:compact ? 8 : 14) {
@@ -256,7 +256,6 @@ struct KeypadView: View {
           }.scrollDismissesKeyboard(.interactively)
             .background(Palette.cream).foregroundStyle(Palette.ink)
         }.navigationTitle(L("Keypad")).navigationBarTitleDisplayMode(.inline)
-            .toolbar { KeyboardDismissToolbar() }
     }
 }
 

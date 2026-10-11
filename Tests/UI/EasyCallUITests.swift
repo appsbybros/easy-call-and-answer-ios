@@ -43,6 +43,21 @@ final class EasyCallUITests: XCTestCase {
         }
         XCTAssertTrue(element.isHittable)
     }
+    private func dismissKeyboard(_ title:String = "Done",in app:XCUIApplication) {
+        // Every text field offers a Done control above its keyboard; tap the one on screen.
+        let controls=app.buttons.matching(identifier:title)
+        XCTAssertTrue(controls.firstMatch.waitForExistence(timeout:5),"A \(title) control closes the keyboard")
+        let visible=controls.allElementsBoundByIndex.first { $0.isHittable }
+        XCTAssertNotNil(visible,"The \(title) control must be on screen")
+        visible?.tap()
+    }
+    private func shows(_ text:String,in app:XCUIApplication) -> Bool {
+        app.descendants(matching:.any).matching(identifier:text).firstMatch.waitForExistence(timeout:5)
+    }
+    private func removeOpenPerson(_ remove:String = "Remove",in app:XCUIApplication) throws {
+        let button=app.buttons[remove];reveal(button,in:app);button.tap()
+        try XCTUnwrap(app.buttons.matching(identifier:remove).allElementsBoundByIndex.first(where: { $0.isHittable })).tap()
+    }
     func testEnglishScreensAndSafeCalling() throws {
         let app=launch()
         XCTAssertTrue(app.buttons["Call Maya"].waitForExistence(timeout:10)); capture("en-01-people")
@@ -90,10 +105,10 @@ final class EasyCallUITests: XCTestCase {
         let name=app.textFields["Name"];XCTAssertTrue(name.waitForExistence(timeout:5));name.tap();name.typeText("QA Contact")
         // On a compact phone the next field sits behind the keyboard. Use the
         // visible dismissal control, exactly as a person would, before tapping it.
-        app.buttons["Done"].tap()
+        dismissKeyboard(in:app)
         let phone=app.textFields["Phone number"];phone.tap();phone.typeText("+12025550199")
         XCTAssertEqual(phone.value as? String,"+12025550199")
-        app.buttons["Done"].tap()
+        dismissKeyboard(in:app)
         let save=app.buttons["Save person"];reveal(save,in:app);save.tap()
         XCTAssertTrue(app.buttons["Call QA Contact"].waitForExistence(timeout:5))
         app.terminate();app.launch()
@@ -103,5 +118,55 @@ final class EasyCallUITests: XCTestCase {
         let removeButtons=app.buttons.matching(identifier:"Remove").allElementsBoundByIndex
         try XCTUnwrap(removeButtons.first(where: { $0.isHittable })).tap()
         XCTAssertTrue(app.buttons["Start with someone you love"].exists || app.staticTexts["Start with someone you love"].waitForExistence(timeout:5))
+    }
+    // QA ISSUE-002: digits typed in the contact form's phone field did not show on an iPad.
+    func testPhoneNumberIsTypedCorrectedEditedAndSaved() throws {
+        let app=launch(demo:false)
+        app.buttons["Add a person"].tap()
+        let name=app.textFields["Name"];XCTAssertTrue(name.waitForExistence(timeout:5));name.tap();name.typeText("Phone Check")
+        dismissKeyboard(in:app)
+        let phone=app.textFields["Phone number"];XCTAssertTrue(phone.waitForExistence(timeout:5));phone.tap()
+        phone.typeText("+97254305063")
+        XCTAssertEqual(phone.value as? String,"+97254305063","Every digit appears where it is typed")
+        // Correct a mistyped ending in place: delete two digits, then type the right ones.
+        phone.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:2)+"636")
+        XCTAssertEqual(phone.value as? String,"+972543050636")
+        capture("qa-en-phone-entry")
+        dismissKeyboard(in:app)
+        let save=app.buttons["Save person"];reveal(save,in:app);save.tap()
+        XCTAssertTrue(app.buttons["Call Phone Check"].waitForExistence(timeout:5))
+        app.buttons["Phone Check, Details and reminders"].tap()
+        XCTAssertTrue(shows("+972543050636",in:app))
+        // Edit the saved number: the form shows it, it can be deleted and replaced.
+        let edit=app.buttons["Edit"];reveal(edit,in:app);edit.tap()
+        let saved=app.textFields["Phone number"];XCTAssertTrue(saved.waitForExistence(timeout:5))
+        XCTAssertEqual(saved.value as? String,"+972543050636")
+        // Tap after the digits so the caret starts at the end of the number.
+        saved.coordinate(withNormalizedOffset:CGVector(dx:0.9,dy:0.5)).tap()
+        saved.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:20)+"0501234567")
+        XCTAssertEqual(saved.value as? String,"0501234567")
+        dismissKeyboard(in:app)
+        let update=app.buttons["Save person"];reveal(update,in:app);update.tap()
+        XCTAssertTrue(shows("0501234567",in:app))
+        // Leave no saved people behind for the next test.
+        try removeOpenPerson(in:app)
+        XCTAssertTrue(app.buttons["Start with someone you love"].exists || app.staticTexts["Start with someone you love"].waitForExistence(timeout:5))
+    }
+    func testHebrewPhoneNumberIsTypedAndSaved() throws {
+        let app=launch("he",demo:false)
+        let add=app.buttons["הוספת איש קשר"];XCTAssertTrue(add.waitForExistence(timeout:10));add.tap()
+        let name=app.textFields["שם"];XCTAssertTrue(name.waitForExistence(timeout:5));name.tap();name.typeText("QA")
+        dismissKeyboard("סיום",in:app)
+        let phone=app.textFields["מספר טלפון"];XCTAssertTrue(phone.waitForExistence(timeout:5));phone.tap()
+        phone.typeText("0543050637"+XCUIKeyboardKey.delete.rawValue+"6")
+        XCTAssertEqual(phone.value as? String,"0543050636","Digits stay in typing order inside a right-to-left form")
+        capture("qa-he-phone-entry")
+        dismissKeyboard("סיום",in:app)
+        let save=app.buttons["שמירת איש קשר"];reveal(save,in:app);save.tap()
+        XCTAssertTrue(app.buttons["התקשרות QA"].waitForExistence(timeout:5))
+        app.buttons["QA, פרטים ותזכורות"].tap()
+        XCTAssertTrue(shows("0543050636",in:app))
+        try removeOpenPerson("הסרה",in:app)
+        XCTAssertTrue(app.buttons["מתחילים עם מישהו אהוב"].exists || app.staticTexts["מתחילים עם מישהו אהוב"].waitForExistence(timeout:5))
     }
 }
