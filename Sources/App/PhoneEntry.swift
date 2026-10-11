@@ -118,6 +118,12 @@ struct PhoneNumberField: UIViewRepresentable {
 
     func makeCoordinator() -> Coordinator { Coordinator(text: $text) }
 
+    /// Ends system-keyboard typing in any phone field, so a number changed by on-screen buttons
+    /// is shown (while the keyboard types, the field alone owns its number; see updateUIView).
+    @MainActor static func endTyping() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+
     func makeUIView(context: Context) -> PhoneEntryField {
         let field = PhoneEntryField(frame: .zero)
         field.font = scaledFont
@@ -139,6 +145,11 @@ struct PhoneNumberField: UIViewRepresentable {
     func updateUIView(_ field: PhoneEntryField, context: Context) {
         context.coordinator.text = $text
         applyLabels(to: field)
+        // While the person is typing, the field alone owns the number. SwiftUI can call this with
+        // a value that is a keystroke or two behind (fast typing on an iPad keyboard), and writing
+        // it back erased newer digits (the iPad UI test lost "36" of "636"). Changes made
+        // elsewhere, such as a number picked from Contacts, are shown once editing has ended.
+        guard !field.isFirstResponder else { return }
         field.show(text)
     }
 
