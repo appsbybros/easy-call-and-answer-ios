@@ -25,6 +25,10 @@ targets:
       path: Resources/Info.plist
       properties:
         CFBundleDisplayName: Easy Call
+        # Without these XcodeGen writes version 1.0 and build 1, and the build number the
+        # TestFlight workflow sets would never reach the app.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSApplicationQueriesSchemes: [tel, facetime-audio]
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
